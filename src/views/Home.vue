@@ -42,7 +42,7 @@ export default {
     check_button_clicked(event) {
       event.preventDefault()
       console.log(this.url)
-      this.socket = new WebSocket("ws://127.0.0.1:8000/"+this.url)
+      this.socket = new WebSocket("ws://cosmos.asap-it.tech:8000/"+this.url)
       this.socket.addEventListener("open", ()=>{
         console.log("Socket connected")
         this.socket.addEventListener("message", this.onSocketMessage)
