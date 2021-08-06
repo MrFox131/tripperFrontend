@@ -1,11 +1,21 @@
 <template>
   <div id="root_container">
     <div class="input_container">
-      <input v-bind:value="url"/><br>
-      <a href="#">
+      <input v-model="url"><br>
+      <a href="" id="check_button" v-on:click="check_button_clicked">
         <span>Button</span>
         <div class="liquid"></div>
       </a>
+    </div>
+    <br>
+    <br>
+    <div>
+      Оценка по орфографии: {{SpellingErrors.result}}% <br>
+      Оценка по Punicode: {{Punicode?"Положительная":"Отрицательная"}} <br>
+      Оценка по перенаправлениям: {{Forwarding?"Положительная":"Отрицательная"}} <br>
+      Домен похож на один из популярных: {{DomainNearPopular?"Да":"Нет"}} <br>
+      Возраст домена: {{SslAndDomainAge["old"]?"Достаточен":"Недоcтаточен"}} <br>
+      Есть ли SSL: {{SslAndDomainAge["result"]!="No ssl"?"Да":"Нет"}}
     </div>
   </div>
 </template>
@@ -17,7 +27,30 @@ export default {
   data: function (){
     return {
       url: "",
+      socket: null,
+      SslAndDomainAge: {old: false},
+      SpellingErrors: {'result':0},
+      Punicode: true,
+      Forwarding: true,
+      DomainNearPopular: null
+    }
+  },
+  mounted() {
 
+  },
+  methods: {
+    check_button_clicked(event) {
+      event.preventDefault()
+      console.log(this.url)
+      this.socket = new WebSocket("ws://127.0.0.1:8000/"+this.url)
+      this.socket.addEventListener("open", ()=>{
+        console.log("Socket connected")
+        this.socket.addEventListener("message", this.onSocketMessage)
+      })
+    },
+    onSocketMessage(event) {
+      var data = JSON.parse(event.data)
+      this[data.id] = data
     }
   }
 }
@@ -36,13 +69,18 @@ body{
   justify-content: center;
 }
 .input_container{
-  max-width: 800px;
+  text-align: center;
   align-self: center;
 }
 input{
-  border-radius: 8px;
-  height: 2rem;
-  border-style: solid ;
+  border-radius: 10px;
+  padding-left: 5px ;
+  padding-right: 5px;
+  font-size: 1.2rem;
+  width: 400px;
+  height: 3rem;
+  /*height: 2rem;*/
+  border-style: solid;
   border-color: blueviolet;
   border-width: 2px;
   box-shadow: none!important;
@@ -56,9 +94,11 @@ a {
   display: block;
   text-decoration: none;
   text-transform: uppercase;
-  width: 200px;
+  width: 100px;
   overflow: hidden;
   border-radius: 40px;
+  margin: auto;
+  margin-top: 10px;
 }
 
 a span {
